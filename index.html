@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction UI</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            font-family: Arial, sans-serif;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .linear2 {
+            background-color: black;
+            padding: 20px;
+            margin: 0 auto;
+            border: 2px solid red;
+            border-radius: 10px;
+            box-shadow: 0 0 15px red;
+            max-width: 500px;
+            text-align: center;
+            z-index: 2;
+        }
+        .glowing-text {
+            color: red;
+            text-shadow: 0 0 10px red;
+        }
+        .list-view {
+            margin-top: 20px;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #444;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #222;
+        }
+        button {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px;
+            box-shadow: 0 0 10px red;
+        }
+        button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <div class="linear2">
+        <h2 class="glowing-text">🔶 HYPER MOD VX1 🔶</h2>
+        <p id="textview1" class="glowing-text">Period: Loading...</p>
+        <p id="textview2" class="glowing-text">Timer: 00:00</p>
+        <hr style="border: 1px solid red;">
+        <p class="glowing-text">UPCOMING NUMBER -: <span id="upcoming-number">N/A</span></p>
+        <p class="glowing-text">UPCOMING SIZE -: <span id="upcoming-size">N/A</span></p>
+        <p class="glowing-text">UPCOMING COLOUR -: <span id="upcoming-color">N/A</span></p>
+        <hr style="border: 1px solid red;">
+        <p class="glowing-text">WIN CHANCE -: <span id="win-chance">N/A</span></p>
+        <button id="check-btn" onclick="checkResult()">CHECK RESULT</button>
+        <div class="list-view" id="history">
+            <p class="glowing-text">History:</p>
+        </div>
+    </div>
+
+    <script>
+        // Particle animation
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#f44336', '#E57373'];
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 7 + 3;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.dx = Math.random() * 2 - 1;
+                this.dy = Math.random() * 2 - 1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            update() {
+                this.x += this.dx;
+                this.y += this.dy;
+                if (this.x < 0 || this.x > canvas.width) this.dx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.dy *= -1;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 30; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => particle.update());
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // Timer and Prediction Logic
+        let canCheckResult = true;
+        let previousPeriod = null;
+
+        function updateTimerAndPeriod() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const remainingSeconds = 60 - seconds;
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+
+            // Calculate elapsed minutes since 5:29 AM
+            const elapsedMinutes = (hours * 60 + minutes) - (5 * 60 + 29);
+            const period = `100001${String(elapsedMinutes < 0 ? 0 : elapsedMinutes).padStart(4, '0')}`;
+            document.getElementById('textview1').innerText = `Period: ${period}`;
+            document.getElementById('textview2').innerText = `Timer: 00:${String(remainingSeconds).padStart(2, '0')}`;
+
+            // Reset button and period if the period changes
+            if (previousPeriod !== period) {
+                previousPeriod = period;
+                canCheckResult = true;
+                document.getElementById('history').innerHTML = '';
+            }
+        }
+
+        setInterval(updateTimerAndPeriod, 1000);
+
+        function predict() {
+            const number = Math.floor(Math.random() * 10);
+            const size = number <= 4 ? 'SMALL' : 'BIG';
+            const color = number % 2 === 0 ? 'RED 🔴' : 'GREEN 🟢';
+            const winChance = Math.floor(Math.random() * 100) + '%';
+
+            document.getElementById('upcoming-number').innerText = number;
+            document.getElementById('upcoming-size').innerText = size;
+            document.getElementById('upcoming-color').innerText = color;
+            document.getElementById('win-chance').innerText = winChance;
+
+            const history = document.getElementById('history');
+            const result = `Number: ${number}, Size: ${size}, Color: ${color}, Win: ${winChance}`;
+            const p = document.createElement('p');
+            p.innerText = result;
+            p.style.color = 'red';
+            history.appendChild(p);
+        }
+
+        function checkResult() {
+            if (!canCheckResult) {
+                alert('PLS WAIT FOR NEXT PERIOD');
+                return;
+            }
+            canCheckResult = false;
+            predict();
+        }
+    </script>
+</body>
+</html>
